@@ -1,3 +1,6 @@
+//"service_1w8g6sb",
+// "template_b31wi1o",
+// wTwO1DApwaKc4gyjJ
 import { useState } from "react";
 import emailjs from "emailjs-com";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,20 +11,26 @@ function ReplyForm() {
   const [status, setStatus] = useState("idle"); 
   // idle | sending | sent | error | declined
 
+  const EMAIL_CONFIG = {
+    serviceId: "service_1w8g6sb",
+    templateId: "template_b31wi1o",
+    publicKey: "wTwO1DApwaKc4gyjJ"
+  };
+
   const sendReply = (e) => {
     e.preventDefault();
     setStatus("sending");
 
     emailjs
       .send(
-        "service_1w8g6sb",
-        "template_b31wi1o",
+        EMAIL_CONFIG.serviceId,
+        EMAIL_CONFIG.templateId,
         {
           from_name: "Hima",
           message,
           time: new Date().toLocaleString()
         },
-        "wTwO1DApwaKc4gyjJ"
+        EMAIL_CONFIG.publicKey
       )
       .then(() => {
         setStatus("sent");
@@ -32,9 +41,26 @@ function ReplyForm() {
       });
   };
 
+  // 🔕 Silent notification when she clicks "No"
+  const handleNoClick = () => {
+    setStatus("declined");
+
+    emailjs.send(
+      EMAIL_CONFIG.serviceId,
+      EMAIL_CONFIG.templateId,
+      {
+        from_name: "Hima",
+        message: "She read today’s message and chose not to reply 💛",
+        time: new Date().toLocaleString()
+      },
+      EMAIL_CONFIG.publicKey
+    ).catch(() => {
+      // Fail silently — she should never know
+    });
+  };
+
   return (
     <>
-      {/* Prompt */}
       <div className="reply-prompt">
         <AnimatePresence mode="wait">
           {status === "idle" && (
@@ -49,10 +75,7 @@ function ReplyForm() {
                 <button className="yes" onClick={() => setOpen(true)}>
                   Yes
                 </button>
-                <button
-                  className="no"
-                  onClick={() => setStatus("declined")}
-                >
+                <button className="no" onClick={handleNoClick}>
                   No
                 </button>
               </div>
@@ -75,7 +98,6 @@ function ReplyForm() {
         </AnimatePresence>
       </div>
 
-      {/* Modal */}
       {open && (
         <div className="modal-backdrop" onClick={() => setOpen(false)}>
           <motion.div
